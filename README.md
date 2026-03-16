@@ -5,7 +5,7 @@ Built with **Kotlin**, **Jetpack Compose**, **Room**, and **Google Maps Platform
 
 ---
 
-## Features
+## 🧩 Features
 
 - User login and registration  
 - Pet and walk management  
@@ -16,7 +16,7 @@ Built with **Kotlin**, **Jetpack Compose**, **Room**, and **Google Maps Platform
 
 ---
 
-## Technologies
+## 🚀 Technologies
 
 - **Kotlin**  
 - **Jetpack Compose**  
@@ -26,7 +26,7 @@ Built with **Kotlin**, **Jetpack Compose**, **Room**, and **Google Maps Platform
 
 ---
 
-## Installation
+## ▶️ Installation
 
 1. Clone the repository:  
 git clone https://github.com/SoyJeand/AppGuauGoo-PetWalksManager.git
@@ -37,7 +37,7 @@ git clone https://github.com/SoyJeand/AppGuauGoo-PetWalksManager.git
 
 3 . Run the app on an emulator or physical device
 
-## Author
+## 📖 Author
 
 Jean Grober De la Cruz
 LinkedIn
