@@ -1,6 +1,5 @@
 package com.example.appguaugo.presentation.home
 
-import androidx.activity.result.launch
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.foundation.Image
@@ -54,23 +53,31 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.automirrored.filled.ContactSupport
 import androidx.compose.material.icons.automirrored.filled.DirectionsWalk
 import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.filled.ContactSupport
 import androidx.compose.material.icons.filled.DirectionsWalk
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.MyLocation
+import androidx.compose.material.icons.filled.OfflinePin
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.VerifiedUser
+import androidx.compose.material.icons.filled.WifiCalling3
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.rememberNestedScrollInteropConnection
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.location.LocationManagerCompat
 import androidx.core.location.LocationManagerCompat.getCurrentLocation
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import coil.compose.ImagePainter
 import com.example.appguaugo.application.GuauApp
 import com.example.appguaugo.application.UserRole
@@ -86,6 +93,10 @@ import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.maps.android.compose.CameraPositionState
+import androidx.compose.runtime.LaunchedEffect
+import com.example.appguaugo.data.entity.MascotaEntity
+import androidx.compose.runtime.collectAsState
+import com.example.appguaugo.data.entity.VerificationStatus
 
 
 // Define los colores aquí para reutilizarlos // --- DATOS DE EJEMPLO (Sin cambios) ---
@@ -104,6 +115,9 @@ fun RequestWalkScreen(
     navController: NavController, // <<< Lo necesitamos para la navegación
     openDrawer: () -> Unit  // NUEVO PARAMETRO
 ) {
+
+
+    var selectedPet by remember { mutableStateOf<MascotaEntity?>(null) }
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
@@ -113,7 +127,9 @@ fun RequestWalkScreen(
     val repository = remember { ClienteRepository(
         GuauApp.db.clienteDao(),
         GuauApp.db.mascotaDao(),
-        GuauApp.db.solicitudPaseoDao()) }
+        GuauApp.db.solicitudPaseoDao(),
+        GuauApp.db.reclamoDao(),
+        GuauApp.db.paseadorVerificacionDao()) }
     val profileViewModel: ProfileViewModel = viewModel(
         factory = ProfileViewModelFactory(repository, loggedInUserId)
     )
@@ -134,7 +150,6 @@ fun RequestWalkScreen(
 
     var origin by remember { mutableStateOf("") } // el valor con el que inicializa la variable origin.
     var destination by remember { mutableStateOf("") }
-    var selectedPet by remember { mutableStateOf<Pet?>(null) }
     var selectedWalkType by remember { mutableStateOf(walkTypes.first()) }
     var observations by remember { mutableStateOf("") }
 
@@ -235,7 +250,16 @@ fun RequestWalkScreen(
         bottomSheetState = sheetState
     )
 
-        BottomSheetScaffold(
+    LaunchedEffect(key1 = loggedInUserId) {
+        if (loggedInUserId != -1) {
+            requestWalkViewModel.loadPetsForOwner(loggedInUserId)
+        }
+    }
+
+    val petsFromDb by requestWalkViewModel.pets.collectAsState()
+
+
+    BottomSheetScaffold(
             scaffoldState = scaffoldState,
             sheetContent = {
                 WalkRequestForm(
@@ -244,6 +268,7 @@ fun RequestWalkScreen(
                     onOriginChange = { origin = it },
                     destination = destination,
                     onDestinationChange = { destination = it },
+                    pets = petsFromDb,
                     selectedPet = selectedPet,
                     onPetSelected = { selectedPet = it },
                     selectedWalkType = selectedWalkType,
@@ -334,7 +359,7 @@ fun RequestWalkScreen(
                         clienteId = loggedInUserId,
                         origen = origin,
                         destino = destination,
-                        mascotaNombre = selectedPet?.name ?: "Mascota no especificada",
+                        mascotaNombre = selectedPet?.nombre ?: "Mascota no especificada",
                         tipoPaseo = selectedWalkType,
                         observaciones = observations,
                         costoOfrecido = costoDouble
@@ -342,7 +367,7 @@ fun RequestWalkScreen(
                         Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
                         if (success) {
                             // --- 4. NAVEGA A LA NUEVA PANTALLA ---
-                            navController.navigate("tarifas_ofrecidas")
+                            navController.navigate("esperando_ofertas")
                         }
                     }
                 }
@@ -357,8 +382,14 @@ fun RequestWalkScreen(
 fun AppDrawerContent(
     userName: String,
     onProfileClick: () -> Unit,
+    onPaseoClick: () -> Unit,
+    onHistorialPaseosClick: () -> Unit,
     onMyPetsClick: () -> Unit,
+    onClaimsClick: () -> Unit,
     onLogoutClick: () -> Unit,
+    // --- DG-5: CAMBIO AÑADIDO
+    verificationStatus: String,
+    onVerificationClick: () -> Unit,
     currentRole: UserRole,
     onSwitchRole: () -> Unit
 ) {
@@ -406,8 +437,14 @@ fun AppDrawerContent(
                 icon = { Icon(Icons.Default.Pets, contentDescription = null) },
                 label = { Text("Mis Mascotas") },
                 selected = false,
-                onClick = onMyPetsClick,
+                onClick = onMyPetsClick
                 // badge = { Text("3") } // Opcional: para mostrar un contador
+            )
+            NavigationDrawerItem(
+                icon = { Icon(Icons.Default.OfflinePin, contentDescription = null) },
+                label = { Text("Mi Solicitud") },
+                selected = false, // `selected` se usa para resaltar el ítem actual
+                onClick = onPaseoClick
             )
         }
 
@@ -418,7 +455,37 @@ fun AppDrawerContent(
                 selected = false,
                 onClick = { /* TODO: Navegar a la pantalla de calificaciones del paseador */ }
             )
+            // --- DG-5: CAMBIO AÑADIDO
+            NavigationDrawerItem(
+                icon = { Icon(Icons.Default.VerifiedUser, contentDescription = null) },
+                label = { Text("Verificar Datos") },
+                // --- ▼▼▼ 2. AQUÍ ESTÁ LA MAGIA ▼▼▼ ---
+                badge = {
+                    if (verificationStatus.isNotEmpty()) {
+                        StatusLabel(status = verificationStatus)
+                    }
+                },
+                selected = false,
+                onClick = onVerificationClick
+            )
+
+            NavigationDrawerItem(
+                icon = { Icon(Icons.Default.History, contentDescription = null) },
+                label = { Text("Historial") },
+                selected = false, // `selected` se usa para resaltar el ítem actual
+                onClick = onHistorialPaseosClick
+            )
+
         }
+
+        NavigationDrawerItem(
+            icon = { Icon(Icons.Default.ContactSupport, contentDescription = "Soporte") },
+            label = { Text("Reclamos y Soporte") },
+            selected = false,
+            onClick = onClaimsClick // Llama al nuevo evento
+        )
+
+
 
         // Divisor para separar las acciones principales del cierre de sesión
         Divider(modifier = Modifier.padding(vertical = 16.dp))
@@ -480,6 +547,26 @@ fun AppDrawerContent(
 }
 
 @Composable
+fun StatusLabel(status: String) {
+    val (color, textColor) = when (status) {
+        VerificationStatus.VERIFICADO -> MaterialTheme.colorScheme.primaryContainer to MaterialTheme.colorScheme.onPrimaryContainer
+        VerificationStatus.PENDIENTE -> Color(0xFFFFF3E0) to Color(0xFFE65100) // Naranja
+        VerificationStatus.RECHAZADO -> MaterialTheme.colorScheme.errorContainer to MaterialTheme.colorScheme.onErrorContainer
+        else -> MaterialTheme.colorScheme.secondaryContainer.copy(alpha=0.5f) to MaterialTheme.colorScheme.onSecondaryContainer
+    }
+
+    Text(
+        text = status,
+        modifier = Modifier
+            .background(color, CircleShape)
+            .padding(horizontal = 8.dp, vertical = 4.dp),
+        color = textColor,
+        fontWeight = FontWeight.Bold,
+        style = MaterialTheme.typography.labelSmall
+    )
+}
+
+@Composable
 fun RolSwitchButton(
     currentRole: UserRole,
     onClickConfirm: () -> Unit // Función que se llama si el usuario CONFIRMA el cambio
@@ -522,12 +609,13 @@ fun RolSwitchButton(
 fun WalkRequestForm(
     origin: String,
     destination: String,
-    selectedPet: Pet?,
+    pets: List<MascotaEntity>,
+    selectedPet: MascotaEntity?,
+    onPetSelected: (MascotaEntity) -> Unit,
     selectedWalkType: String,
     observations: String,
     onOriginChange: (String) -> Unit,
     onDestinationChange: (String) -> Unit,
-    onPetSelected: (Pet) -> Unit,
     onWalkTypeSelected: (String) -> Unit,
     onObservationsChange: (String) -> Unit,
     onRequestWalkClick: () -> Unit
@@ -577,7 +665,7 @@ fun WalkRequestForm(
         // --- 2. SECCIÓN DE MASCOTA ---
         Section(title = "Selecciona tu mascota") {
             PetSelector(
-                pets = samplePets,
+                pets = pets,
                 selectedPet = selectedPet,
                 onPetSelected = onPetSelected
             )
@@ -714,18 +802,19 @@ fun LocationInputs(
     onDestinationChange: (String) -> Unit
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        OutlinedTextField(
+        PlacesAutocompleteTextField(
             value = origin,
             onValueChange = onOriginChange,
-            modifier = Modifier.fillMaxWidth(),
-            label = { Text("Desde") },
-            leadingIcon = { Icon(Icons.Default.LocationOn, contentDescription = "Lugar de inicio") },
-            shape = RoundedCornerShape(12.dp),
-            textStyle = TextStyle(
-                fontWeight = FontWeight.Bold
-            )
+            label = "Desde",
+            leadingIcon = { Icon(Icons.Default.LocationOn, contentDescription = "Lugar de inicio") }
         )
-        OutlinedTextField(
+        PlacesAutocompleteTextField(
+            value = destination,
+            onValueChange = onDestinationChange,
+            label = "Hasta",
+            leadingIcon = { Icon(Icons.Default.LocationOn, contentDescription = "Lugar de destino", tint = Color.Red) }
+        )
+        /*OutlinedTextField(
             value = destination,
             onValueChange = onDestinationChange,
             modifier = Modifier.fillMaxWidth(),
@@ -735,16 +824,16 @@ fun LocationInputs(
             textStyle = TextStyle(
                 fontWeight = FontWeight.Bold
             )
-        )
+        )*/
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PetSelector(
-    pets: List<Pet>,
-    selectedPet: Pet?,
-    onPetSelected: (Pet) -> Unit
+    pets: List<MascotaEntity>,
+    selectedPet: MascotaEntity?,
+    onPetSelected: (MascotaEntity) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
 
@@ -753,7 +842,7 @@ fun PetSelector(
         onExpandedChange = { expanded = !expanded }
     ) {
         OutlinedTextField(
-            value = selectedPet?.name ?: "Selecciona una mascota",
+            value = selectedPet?.nombre ?: "Selecciona una mascota",
             onValueChange = {},
             readOnly = true,
             modifier = Modifier
@@ -771,25 +860,32 @@ fun PetSelector(
             expanded = expanded,
             onDismissRequest = { expanded = false }
         ) {
-            pets.forEach { pet ->
+            if (pets.isEmpty()) {
                 DropdownMenuItem(
-                    text = { Text(pet.name) },
-                    onClick = {
-                        onPetSelected(pet)
-                        expanded = false
-                    },
-                    leadingIcon = {
-                        Image(
-                            painter = painterResource(id = pet.photoResId),
-                            contentDescription = pet.name,
-                            modifier = Modifier
-                                .size(40.dp)
-                                .clip(CircleShape)
-                                .border(1.dp, Color.Gray, CircleShape),
-                            contentScale = ContentScale.Crop
-                        )
-                    }
+                    text = { Text("No tienes mascotas registradas") },
+                    onClick = { expanded = false },
+                    enabled = false // Deshabilita el ítem
                 )
+            } else {
+                pets.forEach { pet ->
+                    DropdownMenuItem(
+                        // --- ▼▼▼ CAMBIO 8: Usamos los campos de MascotaEntity ▼▼▼ ---
+                        text = { Text(pet.nombre) },
+                        onClick = {
+                            onPetSelected(pet)
+                            expanded = false
+                        },
+                        leadingIcon = {
+                            // Puedes poner un icono genérico ya que no tienes foto en la BD
+                            Icon(
+                                imageVector = Icons.Default.Pets,
+                                contentDescription = pet.nombre,
+                                modifier = Modifier.size(40.dp)
+                            )
+                        }
+                    )
+                }
+
             }
         }
     }
@@ -847,7 +943,7 @@ fun NumberSheet(
             TextField(
                 value = value,
                 onValueChange = { if (it.all(Char::isDigit)) onValueChange(it) },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done), // 1. Define la acción
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal, imeAction = ImeAction.Done), // 1. Define la acción
                 keyboardActions = KeyboardActions(onDone = { onConfirm() }), // 2. Llama a onConfirm cuando se presiona
                 modifier = Modifier.fillMaxWidth()
             )
@@ -863,22 +959,4 @@ fun NumberSheet(
         }
     }
 }
-
-/*// --- PREVISUALIZACIÓN ---
-@Preview(showBackground = true, device = "id:pixel_8_pro")
-@Composable
-fun RequestWalkScreenPreview() {
-    AppGuauGoTheme {
-        RequestWalkScreen(
-            navController = { NavController },
-            onProfileClick = {},
-            onMyPetsClick = {},
-            onLogoutClick = {},
-            onRequestWalkClick = {}
-        )
-
-    }
-}*/
-
-
 

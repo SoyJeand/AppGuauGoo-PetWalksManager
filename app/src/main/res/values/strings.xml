@@ -1,4 +1,7 @@
 <resources>
-    <string name="app_name">appGuauGo</string>
+    <string name="app_name">GuauGo</string>
     <string name="title_activity_maps">MapsActivity</string>
+    <!-- ▼▼▼ AÑADE ESTA LÍNEA ▼▼▼ -->
+    <string name="google_maps_key" translatable="false" templateMergeStrategy="preserve">AIzaSyA47AUii6MYXicsMZw9VXbcunyT__l-KNc</string>
+
 </resources>

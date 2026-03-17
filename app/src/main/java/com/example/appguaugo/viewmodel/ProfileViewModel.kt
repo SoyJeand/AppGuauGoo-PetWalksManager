@@ -10,7 +10,10 @@ import kotlinx.coroutines.launch
 // Estados posibles de la UI del Perfil
 sealed class ProfileUiState {
     object Loading : ProfileUiState()
-    data class Success(val user: ClienteEntity) : ProfileUiState()
+    data class Success(
+        val user: ClienteEntity,
+        val verificationStatus: String
+    ) : ProfileUiState()
     data class Error(val message: String) : ProfileUiState()
 }
 
@@ -20,27 +23,33 @@ class ProfileViewModel(
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<ProfileUiState>(ProfileUiState.Loading)
-    val uiState: StateFlow<ProfileUiState> = _uiState.asStateFlow()
-
+    val uiState: StateFlow<ProfileUiState> = _uiState
     init {
-        loadUserProfile()
-    }
+        if (userId != -1) {
+            viewModelScope.launch {
+                val userFlow = repository.getClienteById(userId) // Asumo que getClienteById es correcto
+                val verificationStatusFlow = repository.getEstadoVerificacion(userId)
 
-    private fun loadUserProfile() {
-        viewModelScope.launch {
-            repository.getClienteById(userId)
-                .catch { e ->
-                    // Si ocurre un error en el Flow
-                    _uiState.value = ProfileUiState.Error("Error al cargar el perfil: ${e.message}")
-                }
-                .collect { user ->
-                    // Cuando el Flow emite un valor
+                userFlow.combine(verificationStatusFlow) { user, status ->
                     if (user != null) {
-                        _uiState.value = ProfileUiState.Success(user)
+                        ProfileUiState.Success(user, status)
                     } else {
-                        _uiState.value = ProfileUiState.Error("Usuario no encontrado.")
+                        // --- ▼▼▼ CORRECCIÓN 1 ▼▼▼ ---
+                        // Llama al constructor con un mensaje
+                        ProfileUiState.Error("Usuario no encontrado.")
                     }
+                }.catch { e -> // Opcional: captura la excepción para un mensaje más útil
+                    // --- ▼▼▼ CORRECCIÓN 2 ▼▼▼ ---
+                    // Llama al constructor con el mensaje del error
+                    emit(ProfileUiState.Error("Error al cargar los datos: ${e.message}"))
+                }.collect { state ->
+                    _uiState.value = state
                 }
+            }
+        } else {
+            // --- ▼▼▼ CORRECCIÓN 3 ▼▼▼ ---
+            // Llama al constructor con un mensaje
+            _uiState.value = ProfileUiState.Error("ID de usuario no válido.")
         }
     }
 }

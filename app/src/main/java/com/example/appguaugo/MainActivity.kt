@@ -36,11 +36,17 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+// --- DG-6: IMPORTACIÓN DE LA NUEVA PANTALLA ---
+import com.example.appguaugo.presentation.home.VerificationScreen
 import com.example.appguaugo.application.GuauApp
 import com.example.appguaugo.data.repository.ClienteRepository
+import com.example.appguaugo.presentation.home.ClaimsScreen
 import com.example.appguaugo.presentation.home.MainHomeScreen
 import com.example.appguaugo.presentation.home.RequestWalkScreen
 import com.example.appguaugo.presentation.home.TarifasOfrecidasCliView
+import com.example.appguaugo.presentation.home.WaitingForRequestsScreen
+import com.example.appguaugo.presentation.home.WalkHistoryScreen
+import com.example.appguaugo.presentation.home.sampleWalkHistory
 import com.example.appguaugo.presentation.login.LoginScreen
 import com.example.appguaugo.presentation.login.OlvidoPasswordScreen
 import com.example.appguaugo.presentation.login.RegisterScreen
@@ -50,6 +56,7 @@ import com.example.appguaugo.presentation.rating.RatingScreen
 import com.example.appguaugo.presentation.search.SearchingScreen
 import com.example.appguaugo.presentation.splash.SplashScreen
 import com.example.appguaugo.presentation.tracking.TrackingScreen
+import com.example.appguaugo.presentation.walker_home.VerificationScreenn
 import com.example.appguaugo.ui.theme.AppGuauGoTheme
 import com.example.appguaugo.viewmodel.MainViewModel
 import com.example.appguaugo.viewmodel.MascotasViewModel
@@ -57,6 +64,8 @@ import com.example.appguaugo.viewmodel.MascotasViewModelFactory
 import com.example.appguaugo.viewmodel.ProfileViewModel
 import com.example.appguaugo.viewmodel.ProfileViewModelFactory
 import com.example.appguaugo.viewmodel.RegisterUiState
+import com.google.android.libraries.places.api.Places
+import com.example.appguaugo.presentation.home.EsperandoOfertasScreen // << Nueva importación
 
 // Asegúrate que el nombre de tu tema sea correcto
 
@@ -66,7 +75,10 @@ class MainActivity : ComponentActivity() {
         ClienteRepository(
             GuauApp.db.clienteDao(),
             GuauApp.db.mascotaDao(),
-            GuauApp.db.solicitudPaseoDao())
+            GuauApp.db.solicitudPaseoDao(),
+        GuauApp.db.reclamoDao(),
+        GuauApp.db.paseadorVerificacionDao()
+        )
     }
     private val mainViewModel: MainViewModel by viewModels {
         object : ViewModelProvider.Factory {
@@ -80,6 +92,17 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        // 1. Obtenemos la clave de API desde un recurso de strings.
+        val apiKey = getString(R.string.google_maps_key)
+
+        // 2. Verificamos que la clave no esté vacía o sea el valor por defecto.
+        if (apiKey.isEmpty() || apiKey == "YOUR_API_KEY") {
+            // Puedes lanzar una excepción o simplemente loguear un error grave.
+            // Esto te ayudará a detectar si te olvidaste de poner la clave.
+            throw IllegalStateException("Google Maps API Key no encontrada en strings.xml")
+        }
+        // 3. Inicializamos el SDK de Places con la clave.
+        Places.initialize(applicationContext, apiKey)
 
         setContent {
             AppGuauGoTheme {
@@ -239,6 +262,14 @@ class MainActivity : ComponentActivity() {
 
                         }
 
+                        // --- DG-6: RUTA AÑADIDA PARA LA PANTALLA DE VERIFICACIÓN ---
+                        composable("verification_screen") {
+                            VerificationScreenn(onNavigateBack = {
+                                navController.popBackStack()
+                            })
+                        }
+                        // ------------------------------------------------------------------
+
                         // --- ▼▼▼ DESTINOS PARA LAS OPCIONES DEL MENÚ ▼▼▼ ---
 
                         // Pantalla de Perfil (Composable temporal como placeholder)
@@ -281,11 +312,31 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-                        composable("tarifas_ofrecidas") {
-                            TarifasOfrecidasCliView(
+                        // Dentro de tu NavHost en MainActivity.kt
+                        composable("claims") {
+                            ClaimsScreen(
                                 onNavigateBack = { navController.popBackStack() }
                             )
                         }
+
+
+
+                        // La ruta para la pantalla donde el cliente ve las ofertas de los paseadores.
+                        composable("esperando_ofertas") {
+                            EsperandoOfertasScreen(
+                                navController = navController // Le pasamos el NavController para que pueda volver atrás
+                            )
+                        }
+
+                        // En tu archivo NavGraph
+
+                        composable("walk_history") {
+                            WalkHistoryScreen(
+                                onNavigateBack = { navController.popBackStack() },
+                                historialDePaseos = sampleWalkHistory // <-- Aquí pasas los datos de ejemplo
+                            )
+                        }
+
 
 
 
@@ -296,11 +347,27 @@ class MainActivity : ComponentActivity() {
                             // Aquí podrías añadir un LaunchedEffect para navegar después de unos segundos
                             // navController.navigate("tracking")
                         }
-                        composable("tracking") {
-                            TrackingScreen(onWalkFinished = {
-                                navController.navigate("rating")
-                            })
+                        // La ruta de tracking ahora requiere el ID de la solicitud
+                        composable(
+                            route = "tracking/{requestId}",
+                            arguments = listOf(navArgument("requestId") { type = NavType.IntType })
+                        ) { backStackEntry ->
+                            val requestId = backStackEntry.arguments?.getInt("requestId") ?: -1
+
+                            TrackingScreen(
+                                navController = navController,
+                                requestId = requestId,
+                                onWalkFinished = {
+                                    // Si el paseo finaliza, vamos a la pantalla de Rating
+                                    navController.navigate("rating") {
+                                        // Removemos la pantalla de Tracking para que no se pueda volver
+                                        popUpTo("tracking/$requestId") { inclusive = true }
+                                    }
+                                }
+                            )
                         }
+
+
                         composable("rating") {
                             RatingScreen(onRatingSubmitted = {
                                 // Después de calificar, volvemos al home

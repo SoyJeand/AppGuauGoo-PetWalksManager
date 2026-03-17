@@ -76,8 +76,11 @@ dependencies {
     implementation(libs.play.services.maps)
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.constraintlayout)
+    implementation(libs.androidx.compose.foundation)
     val room_version = "2.6.1"
 
+    // Librería para convertir objetos Kotlin a y desde JSON (Necesario para el MapConverter de Room)
+    implementation("com.google.code.gson:gson:2.10.1") // O la versión más reciente
     implementation("androidx.room:room-runtime:$room_version")
     annotationProcessor("androidx.room:room-compiler:$room_version")
     kapt("androidx.room:room-compiler:$room_version")
@@ -93,6 +96,7 @@ dependencies {
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
+    implementation(libs.androidx.ui.text)
     implementation(libs.androidx.material3)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
@@ -119,7 +123,10 @@ dependencies {
     //Play Servicies Location
     implementation("com.google.android.gms:play-services-location:21.2.0") // <--- AÑADE ESTA LÍNEA
 
+    // En build.gradle.kts (Module :app)
+    implementation("com.google.android.libraries.places:places:3.4.0") // O la última versión
 
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.8.0") // O la versión más reciente que sea compatible
 
 
 

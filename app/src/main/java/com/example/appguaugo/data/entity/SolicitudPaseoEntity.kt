@@ -4,7 +4,7 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
-import androidx.room.TypeConverter
+
 import java.util.Date
 
 
@@ -31,5 +31,17 @@ data class SolicitudPaseoEntity(
     val observaciones: String,
     val costoOfrecido: Double,
     val fechaSolicitud: Date = Date(), // Guarda la fecha y hora de la solicitud
-    val estado: String = "BUSCANDO" // Estados: BUSCANDO, CONFIRMADO, CANCELADO, FINALIZADO
+    val estado: String = "BUSCANDO", // Estados: BUSCANDO, CONFIRMADO, CANCELADO, FINALIZADO
+
+    // --- CAMPOS NUEVOS PARA LA FUNCIONALIDAD ---
+
+    // Almacena las ofertas: Clave(Paseador ID) -> Valor(Precio Ofrecido).
+    // Manejado por el MapConverter que añadimos a Converters.kt
+    val contraofertas: Map<Int, Double> = emptyMap(),
+
+    // ID del paseador que fue aceptado (solo si estado es CONFIRMADO o EN_CAMINO)
+    val paseadorIdAceptado: Int? = null,
+
+    // Precio final acordado (puede ser el costoOfrecido o una contraoferta aceptada)
+    val precioFinal: Double? = null
 )

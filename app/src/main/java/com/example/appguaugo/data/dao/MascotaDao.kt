@@ -16,4 +16,5 @@ interface MascotaDao {
     // El Flow se actualizará automáticamente si se añade o borra una mascota.
     @Query("SELECT * FROM mascota WHERE duenoId = :duenoId ORDER BY nombre ASC")
     fun getMascotasByDuenoId(duenoId: Int): Flow<List<MascotaEntity>>
+
 }
