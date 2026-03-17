@@ -39,8 +39,6 @@ git clone https://github.com/SoyJeand/AppGuauGoo-PetWalksManager.git
 
 ## 📱 App Screenshots
 
-## 📱 App Screenshots
-
 <p align="center">
   <img src="images/GuauGo.png" width="22%" />
   <img src="images/login.png" width="22%" />
