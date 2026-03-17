@@ -39,21 +39,21 @@ git clone https://github.com/SoyJeand/AppGuauGoo-PetWalksManager.git
 
 ## 📱 App Screenshots
 
-| Splash / Logo | Login |
-|---------------|-------|
-| ![](images/GuauGO.png) | ![](images/login.png) |
+## 📱 App Screenshots
 
-| Register | Home |
-|----------|------|
-| ![](images/register.png) | ![](images/home.png) |
+<p align="center">
+  <img src="images/GuauGO.png" width="22%" />
+  <img src="images/login.png" width="22%" />
+  <img src="images/register.png" width="22%" />
+  <img src="images/home.png" width="22%" />
+</p>
 
-| Client Request | Request Status |
-|----------------|---------------|
-| ![](images/solicitud.png) | ![](images/counteroffer-received.png) |
-
-| Walker Menu | Walker Requests |
-|-------------|-----------------|
-| ![](images/walker-menu.png) | ![](images/solicitud-walker.png) |
+<p align="center">
+  <img src="images/solicitud.png" width="22%" />
+  <img src="images/counteroffer-received.png" width="22%" />
+  <img src="images/walker-menu.png" width="22%" />
+  <img src="images/solicitud-walker.png" width="22%" />
+</p>
 
 ## 📖 Author
 
