@@ -42,7 +42,7 @@ git clone https://github.com/SoyJeand/AppGuauGoo-PetWalksManager.git
 ## 📱 App Screenshots
 
 <p align="center">
-  <img src="images/GuauGO.png" width="22%" />
+  <img src="images/GuauGo.png" width="22%" />
   <img src="images/login.png" width="22%" />
   <img src="images/register.png" width="22%" />
   <img src="images/home.png" width="22%" />
@@ -50,17 +50,16 @@ git clone https://github.com/SoyJeand/AppGuauGoo-PetWalksManager.git
 
 <p align="center">
   <img src="images/solicitud.png" width="22%" />
-  <img src="images/counteroffer-received.png" width="22%" />
-  <img src="images/walker-menu.png" width="22%" />
+  <img src="images/walker-menu.png" width="22%" />  
   <img src="images/solicitud-walker.png" width="22%" />
+  <img src="images/counteroffer-received.png" width="22%" />
 </p>
 
 ## 📖 Author
 
 Jean Grober De la Cruz
 
-LinkedIn
- | GitHub
+LinkedIn | GitHub
 
 
 
