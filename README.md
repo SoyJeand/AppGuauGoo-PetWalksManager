@@ -52,7 +52,7 @@ git clone https://github.com/SoyJeand/AppGuauGoo-PetWalksManager.git
   <img src="images/solicitud.png" width="22%" />
   <img src="images/walker-menu.png" width="22%" />  
   <img src="images/solicitud-walker.png" width="22%" />
-  <img src="images/counteroffer-received.png" width="22%" />
+  <img src="images/counteroffer received.png" width="22%" />
 </p>
 
 ## 📖 Author
