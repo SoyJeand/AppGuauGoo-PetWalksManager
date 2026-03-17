@@ -37,9 +37,28 @@ git clone https://github.com/SoyJeand/AppGuauGoo-PetWalksManager.git
 
 3 . Run the app on an emulator or physical device
 
+## 📱 App Screenshots
+
+| Splash / Logo | Login |
+|---------------|-------|
+| ![](images/GuauGO.png) | ![](images/login.png) |
+
+| Register | Home |
+|----------|------|
+| ![](images/register.png) | ![](images/home.png) |
+
+| Client Request | Request Status |
+|----------------|---------------|
+| ![](images/solicitud.png) | ![](images/counteroffer-received.png) |
+
+| Walker Menu | Walker Requests |
+|-------------|-----------------|
+| ![](images/walker-menu.png) | ![](images/solicitud-walker.png) |
+
 ## 📖 Author
 
 Jean Grober De la Cruz
+
 LinkedIn
  | GitHub
 
